@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Capitán Austro — Prototipo interactivo estilo Genially</title>
+<style>
+  :root{
+    --bg1:#021f31;
+    --bg2:#02314B;
+    --accent:#03BAEB;
+    --gold:#5ADB7E;
+    --ink:#ecf1fb;
+    --muted:#A9D7E8;
+    --panel:#06283D;
+    --card:#0A3956;
+    --line:rgba(255,255,255,.12);
+    --success:#5ADB7E;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:
+    radial-gradient(circle at 20% 10%, rgba(3,186,235,.16), transparent 28%),
+    radial-gradient(circle at 90% 20%, rgba(90,219,126,.18), transparent 24%),
+    linear-gradient(135deg,var(--bg1),var(--bg2)); color:var(--ink);}
+  .app{height:100%;display:flex;flex-direction:column}
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 24px;border-bottom:1px solid var(--line);backdrop-filter: blur(10px);
+  }
+  .brand{display:flex;gap:14px;align-items:center}
+  .logo{
+    width:42px;height:42px;border-radius:12px;
+    background:linear-gradient(160deg,var(--accent),#0287AA);
+    display:grid;place-items:center;font-weight:800;box-shadow:0 10px 25px rgba(0,0,0,.25);
+  }
+  .brand h1{font-size:18px;margin:0}
+  .brand p{margin:2px 0 0;color:var(--muted);font-size:12px}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  button{
+    border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--ink);
+    border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer;
+  }
+  button.primary{background:linear-gradient(160deg,var(--accent),#0287AA);border:none}
+  button:hover{transform:translateY(-1px)}
+  main{flex:1;display:grid;grid-template-columns: 1fr 330px;gap:18px;padding:18px;min-height:0}
+  .stage{
+    position:relative;background:
+      linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)),
+      linear-gradient(135deg, rgba(3,186,235,.10), transparent 30%),
+      linear-gradient(135deg, #052238, #0A3956);
+    border:1px solid var(--line);border-radius:24px;overflow:hidden;min-height:0;
+    box-shadow:0 18px 45px rgba(0,0,0,.24);
+  }
+  .slide{
+    position:absolute; inset:0; padding:28px 30px 26px 30px;
+    display:grid; grid-template-rows:auto 1fr auto; gap:14px;
+    opacity:0; pointer-events:none; transform:translateX(20px); transition:.38s ease;
+  }
+  .slide.active{opacity:1; pointer-events:auto; transform:translateX(0)}
+  .kicker{
+    display:inline-flex;align-items:center;gap:8px; width:max-content;
+    padding:8px 12px; border-radius:999px; font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; color:#fff; background:rgba(255,255,255,.08); border:1px solid var(--line);
+  }
+  .title{font-size:40px;line-height:1.02;margin:12px 0 8px 0;max-width:900px}
+  .subtitle{font-size:18px;color:var(--muted);max-width:760px}
+  .content{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;min-height:0}
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+    border:1px solid var(--line);border-radius:22px;padding:20px 20px 18px 20px;
+    position:relative; overflow:hidden;
+  }
+  .card::after{
+    content:""; position:absolute; inset:auto -40px -40px auto; width:160px; height:160px;
+    background:radial-gradient(circle, rgba(90,219,126,.16), transparent 60%);
+  }
+  .hero-box{
+    display:grid; grid-template-columns: 180px 1fr; gap:18px; align-items:center; min-height:100%;
+  }
+  .hero{
+    height:250px;border-radius:24px; position:relative; overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 20%, rgba(90,219,126,.30), transparent 24%),
+      linear-gradient(180deg,#0A3956,#02263B);
+    border:1px solid rgba(255,255,255,.10);
+  }
+  .hero .cape{position:absolute; width:110px; height:130px; left:58px; top:92px; background:linear-gradient(180deg, #03BAEB, #0287AA); clip-path:polygon(50% 0,100% 25%,88% 100%,20% 100%,0 30%);}
+  .hero .head{position:absolute; width:62px; height:62px; border-radius:50%; background:#f0d4b7; left:59px; top:28px;}
+  .hero .mask{position:absolute; width:64px; height:22px; background:#5ADB7E; left:58px; top:48px; border-radius:10px}
+  .hero .torso{position:absolute; width:92px; height:118px; left:43px; top:82px; border-radius:22px; background:linear-gradient(180deg,#0B4A6C,#02314B); border:1px solid rgba(255,255,255,.08)}
+  .hero .badge{position:absolute; width:42px; height:42px; left:68px; top:116px; border-radius:14px; background:linear-gradient(180deg,#5ADB7E,#2EA95A); display:grid; place-items:center; font-weight:800; color:#02314B}
+  .hero .arm1,.hero .arm2{position:absolute; width:26px; height:82px; top:92px; background:#0B4A6C; border-radius:20px}
+  .hero .arm1{left:24px; transform:rotate(18deg)}
+  .hero .arm2{left:130px; transform:rotate(-22deg)}
+  .hero .leg1,.hero .leg2{position:absolute; width:28px; height:98px; top:184px; background:#02314B; border-radius:20px}
+  .hero .leg1{left:56px}.hero .leg2{left:98px}
+  .hero .ground{position:absolute; left:18px; right:18px; bottom:8px; height:16px; border-radius:999px; background:rgba(255,255,255,.10)}
+  .map{
+    height:250px; border-radius:24px; overflow:hidden; border:1px solid rgba(255,255,255,.08);
+    background:
+      radial-gradient(circle at 20% 20%, rgba(90,219,126,.25), transparent 18%),
+      radial-gradient(circle at 68% 30%, rgba(3,186,235,.25), transparent 16%),
+      radial-gradient(circle at 48% 72%, rgba(90,219,126,.20), transparent 18%),
+      linear-gradient(135deg,#052238,#0A3956);
+    position:relative;
+  }
+  .map::before{
+    content:""; position:absolute; inset:18px; border:1px dashed rgba(255,255,255,.18); border-radius:20px;
+  }
+  .map .pin{position:absolute; width:16px; height:16px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 10px rgba(90,219,126,.10)}
+  .map .pin:nth-child(1){left:28%; top:22%}
+  .map .pin:nth-child(2){left:64%; top:34%}
+  .map .pin:nth-child(3){left:48%; top:62%}
+  .map .road{position:absolute; height:2px; background:rgba(255,255,255,.25); transform-origin:left center}
+  .map .r1{left:32%; top:28%; width:33%; transform:rotate(12deg)}
+  .map .r2{left:52%; top:44%; width:16%; transform:rotate(70deg)}
+  .map .label{
+    position:absolute; padding:8px 12px; border-radius:999px; font-size:12px; background:rgba(255,255,255,.08); border:1px solid var(--line)
+  }
+  .map .l1{left:18px; bottom:18px}
+  .map .l2{right:18px; top:18px}
+  .map .l3{right:18px; bottom:18px}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .chip{padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:13px}
+  .bullet-list{display:grid;gap:12px}
+  .bullet{
+    display:grid;grid-template-columns:26px 1fr; gap:12px; align-items:start;
+    padding:12px 14px; border-radius:16px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07)
+  }
+  .bullet .icon{
+    width:26px;height:26px;border-radius:9px; display:grid; place-items:center;
+    background:linear-gradient(160deg, rgba(90,219,126,.24), rgba(3,186,235,.18));
+    font-weight:700;
+  }
+  .speech{
+    position:relative; background:#f7fbff; color:#1a2640; border-radius:20px; padding:18px 18px 16px 18px; box-shadow:0 10px 28px rgba(0,0,0,.18); font-weight:600
+  }
+  .speech::after{
+    content:""; position:absolute; bottom:-14px; left:22px; width:24px; height:24px; background:#f7fbff; transform:rotate(45deg);
+  }
+  .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+  .metric{padding:16px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+  .metric strong{display:block;font-size:28px}
+  .footer{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:2px
+  }
+  .progress{display:flex;gap:8px;align-items:center}
+  .dot{
+    width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.18)
+  }
+  .dot.active{background:var(--gold); border-color:var(--gold)}
+  .side{
+    display:flex;flex-direction:column;gap:16px;min-height:0
+  }
+  .panel{
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+    border:1px solid var(--line); border-radius:22px; padding:18px;
+  }
+  .panel h3{margin:0 0 8px 0;font-size:16px}
+  .panel p, .panel li{color:var(--muted); font-size:14px; line-height:1.5}
+  .notes{flex:1; overflow:auto}
+  .mini-nav{display:grid;gap:8px}
+  .mini{
+    padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03);cursor:pointer
+  }
+  .mini.active{background:rgba(3,186,235,.10);border-color:rgba(3,186,235,.35)}
+  .mini b{display:block;margin-bottom:3px}
+  .tag{display:inline-block; padding:5px 9px; font-size:11px; border-radius:999px; background:rgba(90,219,126,.14); color:#B8F7C9; border:1px solid rgba(90,219,126,.25)}
+  .hidden{display:none}
+  .quote{
+    font-size:34px; line-height:1.15; font-weight:800; letter-spacing:-.02em;
+    background:linear-gradient(180deg,#fff,#dce8ff); -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .ribbon{
+    position:absolute; top:22px; right:-48px; transform:rotate(24deg);
+    background:linear-gradient(180deg,#03BAEB,#0287AA); color:#F2FBFF; font-weight:800; padding:10px 54px; box-shadow:0 8px 18px rgba(0,0,0,.22)
+  }
+  .revealable{opacity:.18; filter:blur(1px); transition:.3s ease}
+  .revealable.on{opacity:1; filter:none}
+  @media (max-width: 1100px){
+    main{grid-template-columns:1fr}
+    .content{grid-template-columns:1fr}
+    .title{font-size:34px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">CA</div>
+      <div>
+        <h1>Capitán Austro</h1>
+        <p>Prototipo interactivo estilo Genially · Assessment Center Marcimex</p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="revealBtn">Revelar elementos</button>
+      <button id="notesBtn">Ocultar notas</button>
+      <button id="prevBtn">← Anterior</button>
+      <button class="primary" id="nextBtn">Siguiente →</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="stage">
+      <div class="slide active" data-title="Portada">
+        <div>
+          <span class="kicker">Presentación estilo cómic ejecutivo</span>
+          <div class="title">Capitán Austro</div>
+          <div class="subtitle">De pasante a líder comercial en formación regional</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="hero-box">
+              <div class="hero">
+                <div class="head"></div><div class="mask"></div><div class="cape"></div><div class="torso"></div>
+                <div class="badge">A</div><div class="arm1"></div><div class="arm2"></div><div class="leg1"></div><div class="leg2"></div><div class="ground"></div>
+              </div>
+              <div>
+                <div class="speech">“Elegí el nombre <b>Capitán Austro</b> porque simboliza el liderazgo comercial territorial que he venido construyendo con aprendizaje, resultados y responsabilidades asumidas en momentos clave.”</div>
+                <div class="chips">
+                  <div class="chip">Visión territorial</div>
+                  <div class="chip">Liderazgo comercial</div>
+                  <div class="chip">Ejecución disciplinada</div>
+                  <div class="chip">Crecimiento rentable</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="map">
+              <div class="pin"></div><div class="pin"></div><div class="pin"></div>
+              <div class="road r1"></div><div class="road r2"></div>
+              <div class="label l1">Equipo</div><div class="label l2">Territorio</div><div class="label l3">Resultados</div>
+            </div>
+            <div class="metrics">
+              <div class="metric"><span class="tag">Idea central</span><strong>5 años</strong>de crecimiento dentro de Marcimex</div>
+              <div class="metric"><span class="tag">Tesis</span><strong>1 historia</strong>mérito, evolución y preparación real</div>
+            </div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="progress"></div>
+          <div>Tiempo sugerido: 35–40 segundos</div>
+        </div>
+      </div>
+
+      <div class="slide" data-title="Origen">
+        <div>
+          <span class="kicker">Viñeta 2 · Mi origen</span>
+          <div class="title">Donde comenzó la transformación</div>
+          <div class="subtitle">Entré como pasante hace 5 años. Ese fue el inicio de una evolución profesional construida paso a paso.</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="bullet-list">
+              <div class="bullet revealable"><div class="icon">1</div><div><b>Pasante</b><br/>Mi primer contacto fue desde la base del negocio, observando, aprendiendo y entendiendo cómo se mueve la operación real.</div></div>
+              <div class="bullet revealable"><div class="icon">2</div><div><b>Aprendizaje</b><br/>Fui integrando análisis, ejecución, dinámica comercial y comprensión del cliente.</div></div>
+              <div class="bullet revealable"><div class="icon">3</div><div><b>Responsabilidad creciente</b><br/>Con el tiempo, asumí retos mayores y amplié mi mirada del negocio.</div></div>
+              <div class="bullet revealable"><div class="icon">4</div><div><b>Oportunidad regional</b><br/>Hoy estoy frente a una posibilidad que representa la evolución natural de ese camino.</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="quote">Aprendizaje.<br/>Disciplina.<br/>Evolución.</div>
+            <p style="margin-top:18px;color:var(--muted);max-width:90%">Tres palabras que resumen cómo Marcimex aportó al desarrollo de mis poderes comerciales.</p>
+            <div class="ribbon">Origen</div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="progress"></div>
+          <div>Tiempo sugerido: 45 segundos</div>
+        </div>
+      </div>
+
+      <div class="slide" data-title="Equipo de fuerza">
+        <div>
+          <span class="kicker">Viñeta 3 · Mi equipo de fuerza</span>
+          <div class="title">La base que sostiene mi liderazgo</div>
+          <div class="subtitle">Antes que un cargo, mi liderazgo nace de valores aprendidos fuera de la oficina y aplicados dentro del negocio.</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="bullet-list">
+              <div class="bullet revealable"><div class="icon">★</div><div><b>Disciplina</b><br/>Mantener el esfuerzo incluso cuando el reto exige más que comodidad.</div></div>
+              <div class="bullet revealable"><div class="icon">★</div><div><b>Humildad</b><br/>Seguir aprendiendo, escuchar y valorar el aporte de otras personas.</div></div>
+              <div class="bullet revealable"><div class="icon">★</div><div><b>Resiliencia</b><br/>Responder con templanza y continuidad en escenarios de presión.</div></div>
+              <div class="bullet revealable"><div class="icon">★</div><div><b>Constancia</b><br/>Entender que el crecimiento sostenible se construye todos los días.</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="speech">“Mi equipo de fuerza me ha enseñado que liderar no es figurar; es sostener, inspirar y avanzar incluso en escenarios complejos.”</div>
+            <div class="chips">
+              <div class="chip">Valores</div>
+              <div class="chip">Humildad</div>
+              <div class="chip">Respaldo emocional</div>
+              <div class="chip">Propósito</div>
+            </div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="progress"></div>
+          <div>Tiempo sugerido: 35 segundos</div>
+        </div>
+      </div>
+
+      <div class="slide" data-title="Misión mayor">
+        <div>
+          <span class="kicker">Viñeta 4 · La misión mayor</span>
+          <div class="title">Cuando me tocó asumir una responsabilidad más amplia</div>
+          <div class="subtitle">El punto de quiebre no fue un privilegio; fue una experiencia que amplió mi comprensión del rol regional.</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="bullet-list">
+              <div class="bullet revealable"><div class="icon">✓</div><div><b>Backup regional</b><br/>En varios momentos respaldé la gestión del gerente regional cuando la zona lo requería.</div></div>
+              <div class="bullet revealable"><div class="icon">✓</div><div><b>Mayor alcance</b><br/>Recientemente asumí una responsabilidad más amplia sobre la zona.</div></div>
+              <div class="bullet revealable"><div class="icon">✓</div><div><b>Aprendizaje real</b><br/>Comprendí con más profundidad lo que exige una regional: criterio, seguimiento, alineación y visión territorial.</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="speech">“Lo entendí como una oportunidad de aprendizaje y de confianza, no como un punto de llegada.”</div>
+            <div class="metrics">
+              <div class="metric"><span class="tag">Lectura correcta</span><strong>Responsabilidad</strong>no ventaja</div>
+              <div class="metric"><span class="tag">Valor</span><strong>Perspectiva</strong>más amplia del rol</div>
+            </div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="progress"></div>
+          <div>Tiempo sugerido: 45 segundos</div>
+        </div>
+      </div>
+
+      <div class="slide" data-title="Superpoder">
+        <div>
+          <span class="kicker">Viñeta 5 · Mi superpoder</span>
+          <div class="title">Transformar presión comercial en dirección y resultados</div>
+          <div class="subtitle">Mi fortaleza no está solo en vender más, sino en construir las condiciones para que el resultado ocurra de forma sostenible.</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="bullet-list">
+              <div class="bullet revealable"><div class="icon">⚡</div><div><b>Ordeno prioridades</b><br/>Convierto urgencias en foco y foco en avance.</div></div>
+              <div class="bullet revealable"><div class="icon">⚡</div><div><b>Leo el negocio</b><br/>Integro operación, datos, equipo y contexto comercial.</div></div>
+              <div class="bullet revealable"><div class="icon">⚡</div><div><b>Alineo personas</b><br/>Busco que la ejecución no dependa del impulso individual, sino de dirección compartida.</div></div>
+              <div class="bullet revealable"><div class="icon">⚡</div><div><b>Concreto resultados</b><br/>Paso de la intención a la acción con disciplina.</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="quote" style="font-size:30px">No me enfoco solo en alcanzar una meta.<br/>Me enfoco en construir las condiciones para sostenerla.</div>
+            <div class="chips">
+              <div class="chip">Datos</div>
+              <div class="chip">Operación</div>
+              <div class="chip">Estrategia</div>
+              <div class="chip">Ejecución</div>
+              <div class="chip">Equipo</div>
+            </div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="progress"></div>
+          <div>Tiempo sugerido: 45 segundos</div>
+        </div>
+      </div>
+
+      <div class="slide" data-title="Misión">
+        <div>
+          <span class="kicker">Viñeta 6 · Mi misión</span>
+          <div class="title">Impulsar crecimiento rentable con equipo, disciplina y propósito</div>
+          <div class="subtitle">Mi motor no es el cargo en sí, sino el impacto que una buena conducción puede generar en tiendas, personas y resultados.</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="speech">“Me motiva ver cómo una estrategia bien ejecutada puede fortalecer un equipo, mejorar la experiencia del cliente y generar valor real para la organización.”</div>
+            <div class="chips">
+              <div class="chip">Rentabilidad</div>
+              <div class="chip">Cliente</div>
+              <div class="chip">Desarrollo de equipo</div>
+              <div class="chip">Consistencia</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="bullet-list">
+              <div class="bullet revealable"><div class="icon">↗</div><div><b>Crecimiento rentable</b><br/>Crecer sí, pero con criterio y sostenibilidad.</div></div>
+              <div class="bullet revealable"><div class="icon">↗</div><div><b>Ejecución disciplinada</b><br/>Que la estrategia se traduzca en seguimiento y acción.</div></div>
+              <div class="bullet revealable"><div class="icon">↗</div><div><b>Equipo fuerte</b><br/>Liderar es multiplicar capacidades, no solo exigir resultados.</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="progress"></div>
+          <div>Tiempo sugerido: 40 segundos</div>
+        </div>
+      </div>
+
+      <div class="slide" data-title="Lema y cierre">
+        <div>
+          <span class="kicker">Viñeta 7 · Cierre</span>
+          <div class="title">Mi lema de batalla</div>
+          <div class="subtitle">Un cierre fuerte, humano y gerencial para dejar recordación sin sonar triunfalista.</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="quote">“No lidero solo para cumplir metas; lidero para construir equipos que sepan superarlas.”</div>
+          </div>
+          <div class="card">
+            <div class="bullet-list">
+              <div class="bullet revealable"><div class="icon">→</div><div><b>Pasante</b><br/>Mi historia comenzó desde la base.</div></div>
+              <div class="bullet revealable"><div class="icon">→</div><div><b>Crecimiento</b><br/>Fui ampliando mirada, criterio y responsabilidades.</div></div>
+              <div class="bullet revealable"><div class="icon">→</div><div><b>Preparación</b><br/>Hoy estoy listo para aportar más a la región desde un liderazgo estratégico, cercano y orientado a resultados.</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="progress"></div>
+          <div>Tiempo sugerido: 35–40 segundos</div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="panel">
+        <h3>Navegación</h3>
+        <div id="miniNav" class="mini-nav"></div>
+      </div>
+      <div class="panel notes" id="notesPanel">
+        <h3>Notas del expositor</h3>
+        <div id="notesContent"></div>
+      </div>
+      <div class="panel">
+        <h3>Cómo llevarlo a Genially</h3>
+        <ul>
+          <li>Usa una plantilla de presentación oscura con estética editorial o cómic ejecutivo.</li>
+          <li>Crea 7 escenas o páginas, una por viñeta.</li>
+          <li>Reemplaza las tarjetas por bloques animados con aparición al clic.</li>
+          <li>Evita exceso de zoom o efectos; prioriza ritmo y claridad.</li>
+          <li>Ten una versión PDF de respaldo para el Assessment.</li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+const notesData = [
+  "Apertura. Presenta el concepto sin adueñarte del cargo. La idea no es 'yo ya soy', sino 'esto representa el liderazgo que he venido construyendo'.",
+  "Aquí debes enfatizar el recorrido: pasante → aprendizaje → evolución → oportunidad actual. Esta viñeta te da legitimidad y humildad al mismo tiempo.",
+  "Mantén esta parte sobria y humana. No entres en detalles íntimos; enfócate en los valores que se convierten en conducta profesional.",
+  "Este punto es clave frente a TH. Habla de responsabilidad y aprendizaje, no de privilegio ni derecho adquirido.",
+  "Tu diferencial frente a otros perfiles internos está aquí: amplitud de mirada. No vendas solo fuerza comercial; vende criterio integral de negocio.",
+  "La misión debe sonar organizacional, no personal. Menos ego, más impacto en equipo, cliente y resultados.",
+  "Cierra con una idea recordable. La clave es que el lema suene fuerte, pero compatible con humildad y madurez gerencial."
+];
+let index = 0;
+let revealMode = false;
+
+const progressContainers = document.querySelectorAll('.progress');
+function buildProgress(){
+  progressContainers.forEach(pc=>{
+    pc.innerHTML = "";
+    slides.forEach((s,i)=>{
+      const dot=document.createElement('div');
+      dot.className='dot'+(i===index?' active':'');
+      pc.appendChild(dot);
+    })
+  })
+}
+const miniNav = document.getElementById('miniNav');
+function buildMiniNav(){
+  miniNav.innerHTML='';
+  slides.forEach((s,i)=>{
+    const el=document.createElement('div');
+    el.className='mini'+(i===index?' active':'');
+    el.innerHTML=`<b>${i+1}. ${s.dataset.title}</b><span style="color:var(--muted);font-size:13px">${s.querySelector('.subtitle').textContent.slice(0,82)}...</span>`;
+    el.onclick=()=>go(i);
+    miniNav.appendChild(el);
+  })
+}
+function updateNotes(){
+  document.getElementById('notesContent').innerHTML = `<p>${notesData[index]}</p><p><b>Ritmo sugerido:</b> habla con frases cortas, una idea central por bloque, y deja que el diseño haga parte del trabajo visual.</p>`;
+}
+function applyReveal(){
+  slides.forEach((slide,si)=>{
+    slide.querySelectorAll('.revealable').forEach((el,ei)=>{
+      if(!revealMode || si!==index){
+        el.classList.toggle('on', !revealMode);
+      }else{
+        el.classList.remove('on');
+      }
+    });
+  });
+}
+let revealStep = 0;
+function runRevealStep(){
+  const current = slides[index];
+  const items = [...current.querySelectorAll('.revealable')];
+  if(!items.length){return}
+  if(revealStep < items.length){
+    items[revealStep].classList.add('on');
+    revealStep++;
+  } else {
+    revealStep = 0;
+    items.forEach(x=>x.classList.remove('on'));
+  }
+}
+function go(i){
+  slides[index].classList.remove('active');
+  index = (i + slides.length) % slides.length;
+  slides[index].classList.add('active');
+  revealStep = 0;
+  buildProgress(); buildMiniNav(); updateNotes(); applyReveal();
+}
+document.getElementById('nextBtn').onclick=()=>go(index+1);
+document.getElementById('prevBtn').onclick=()=>go(index-1);
+document.getElementById('notesBtn').onclick=()=>{
+  const panel=document.getElementById('notesPanel');
+  panel.classList.toggle('hidden');
+  document.getElementById('notesBtn').textContent = panel.classList.contains('hidden') ? 'Mostrar notas' : 'Ocultar notas';
+};
+document.getElementById('revealBtn').onclick=()=>{
+  revealMode=!revealMode;
+  document.getElementById('revealBtn').textContent = revealMode ? 'Mostrar todo' : 'Revelar elementos';
+  applyReveal();
+  if(revealMode) runRevealStep();
+};
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='ArrowRight') go(index+1);
+  if(e.key==='ArrowLeft') go(index-1);
+  if(e.key===' ' && revealMode){ e.preventDefault(); runRevealStep(); }
+});
+buildProgress(); buildMiniNav(); updateNotes(); applyReveal();
+</script>
+</body>
+</html>
